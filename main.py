@@ -87,16 +87,11 @@ def send_next_meme(user_id):
         user_id (int): ID пользователя в Telegram
     """
     if user_id not in user_data:
-        user_data[user_id] = {
-            'attempts': 1,
-            'shown_indices': set(),
-            'finished': False,
-            'search_tokens': []
-        }
+        return
 
     data = user_data[user_id]
     if data['attempts'] > 3:
-        bot.send_message(user_id, "поиск завершен. попробуй другие слова")
+        bot.send_приmessage(user_id, "поиск завершен. попробуй другие слова")
         return
 
     df['matches'] = df['stan'].apply(
@@ -105,7 +100,7 @@ def send_next_meme(user_id):
 
     candidates = df[~df.index.isin(data['shown_indices'])]
     if candidates.empty or candidates['matches'].max() == 0:
-        bot.send_message(user_id, "поиск завершен.")
+        bot.send_message(user_id, "ничего не нашлось(куделпулвоылпокуз.")
         user_data.pop(user_id, None)
         markup = get_main_menu()
         bot.send_message(user_id, "попробуй другие слова!", reply_markup=markup)
@@ -215,16 +210,19 @@ def handle_button(call):
     """
     Обрабатывает нажатие кнопок "ок" / "не ок".
 
-    Параметры:
+    Параметры:все,
         call: Нажатие на кнопку
     """
     user_id = call.message.chat.id
-    data = user_data.get(user_id, {})
+    message_id = call.message.message_id
+
+    if user_id not in user_data:
+        user_data[user_id] = {'attempts': 1, 'shown_indices': set()}
+    data = user_data[user_id]
 
     if call.data == "ok":
         bot.send_message(user_id, "ураааа нашли 🎉")
-        user_data[user_id]['attempts'] = 0
-        bot.delete_message(chat_id=user_id, message_id=user_id)
+        user_data.pop(user_id, None)
         markup = get_main_menu()
         bot.send_message(user_id, "хочешь найти ещё один мем?", reply_markup=markup)
 
