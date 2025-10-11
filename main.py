@@ -203,7 +203,7 @@ def handle_start_button(call):
     user_id = call.message.chat.id
 
     try:
-        bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
+        bot.delete_message(chat_id=user_id, message_id=user_id)
     except:
         pass
 
@@ -224,7 +224,7 @@ def handle_button(call):
     if call.data == "ok":
         bot.send_message(user_id, "ураааа нашли 🎉")
         user_data[user_id]['attempts'] = 0
-        bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
+        bot.delete_message(chat_id=user_id, message_id=user_id)
         markup = get_main_menu()
         bot.send_message(user_id, "хочешь найти ещё один мем?", reply_markup=markup)
 
