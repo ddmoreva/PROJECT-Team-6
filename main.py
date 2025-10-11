@@ -91,7 +91,7 @@ def send_next_meme(user_id):
 
     data = user_data[user_id]
     if data['attempts'] > 3:
-        bot.send_приmessage(user_id, "поиск завершен. попробуй другие слова")
+        bot.send_message(user_id, "поиск завершен. попробуй другие слова")
         return
 
     df['matches'] = df['stan'].apply(
