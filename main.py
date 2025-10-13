@@ -69,7 +69,8 @@ def get_main_menu():
     """
     markup = InlineKeyboardMarkup()
     btn_start = InlineKeyboardButton("🚀 начинаем поиск!", callback_data="start_search")
-    btn_help = InlineKeyboardButton("🆘 помогите, не могу разобраться с ботом", url="https://t.me/ksujpg")
+    btn_help = InlineKeyboardButton("🆘 помогите, не могу разобраться с ботом", url=
+    "https://melkern.github.io/meme-bot-documentation/")
     markup.add(btn_start)
     markup.add(btn_help)
     return markup
@@ -100,7 +101,7 @@ def send_next_meme(user_id):
 
     candidates = df[~df.index.isin(data['shown_indices'])]
     if candidates.empty or candidates['matches'].max() == 0:
-        bot.send_message(user_id, "ничего не нашлось(куделпулвоылпокуз.")
+        bot.send_message(user_id, "ничего не нашлось(")
         user_data.pop(user_id, None)
         markup = get_main_menu()
         bot.send_message(user_id, "попробуй другие слова!", reply_markup=markup)
@@ -210,7 +211,7 @@ def handle_button(call):
     """
     Обрабатывает нажатие кнопок "ок" / "не ок".
 
-    Параметры:все,
+    Параметры:
         call: Нажатие на кнопку
     """
     user_id = call.message.chat.id
