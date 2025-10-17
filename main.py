@@ -69,7 +69,9 @@ def get_main_menu():
     """
     markup = InlineKeyboardMarkup()
     btn_start = InlineKeyboardButton("найти мем", callback_data="start_search")
-    btn_help = InlineKeyboardButton("написать в поддержку", url="https://t.me/ksujpg")
+    btn_help = InlineKeyboardButton("как пользоваться memoRU?", url="https://docs.google.com/"
+                                                                    "document/d/1d5uWW7HQGUYe1Wjk9ylJe1-"
+                                                                    "3UEnrXE0aCe_WsYkYzR8/edit?tab=t.0")
     markup.add(btn_start)
     markup.add(btn_help)
     return markup
