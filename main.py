@@ -232,7 +232,8 @@ def handle_button(call):
         send_next_meme(user_id)
 
 
-@bot.message_handler(func=lambda message: True)
+@bot.message_handler(func=lambda message: True, content_types=[
+    'text', 'voice', 'audio', 'video', 'photo', 'document', 'poll', 'sticker', 'video_note', 'location', 'contact'])
 def process_first_query(message):
     """
     Обрабатывает введённый пользователем текст.
