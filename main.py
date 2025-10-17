@@ -68,8 +68,8 @@ def get_main_menu():
         InlineKeyboardMarkup: Готовая клавиатура с кнопками.
     """
     markup = InlineKeyboardMarkup()
-    btn_start = InlineKeyboardButton("🚀 начинаем поиск!", callback_data="start_search")
-    btn_help = InlineKeyboardButton("🆘 помогите, не могу разобраться с ботом", url="https://t.me/ksujpg")
+    btn_start = InlineKeyboardButton("найти мем", callback_data="start_search")
+    btn_help = InlineKeyboardButton("написать в поддержку", url="https://t.me/ksujpg")
     markup.add(btn_start)
     markup.add(btn_help)
     return markup
@@ -91,7 +91,7 @@ def send_next_meme(user_id):
 
     data = user_data[user_id]
     if data['attempts'] > 3:
-        bot.send_message(user_id, "поиск завершен. попробуй другие слова")
+        bot.send_message(user_id, "давай тогда попробуем новый запрос:")
         return
 
     df['matches'] = df['stan'].apply(
@@ -100,10 +100,10 @@ def send_next_meme(user_id):
 
     candidates = df[~df.index.isin(data['shown_indices'])]
     if candidates.empty or candidates['matches'].max() == 0:
-        bot.send_message(user_id, "ничего не нашлось(куделпулвоылпокуз.")
+        bot.send_message(user_id, "ничего не нашлось...")
         user_data.pop(user_id, None)
         markup = get_main_menu()
-        bot.send_message(user_id, "попробуй другие слова!", reply_markup=markup)
+        bot.send_message(user_id, "давай попробуем другой запрос (⌒_⌒;)", reply_markup=markup)
         return
 
     best_idx = candidates['matches'].idxmax()
@@ -115,10 +115,10 @@ def send_next_meme(user_id):
     img_io.seek(0)
     markup = InlineKeyboardMarkup()
     markup.add(
-        InlineKeyboardButton("ок", callback_data="ok"),
-        InlineKeyboardButton("не ок", callback_data="not_ok")
+        InlineKeyboardButton("👍", callback_data="ok"),
+        InlineKeyboardButton("👎", callback_data="not_ok")
     )
-    bot.send_photo(user_id, img_io, caption="вот такой мем, подходит тебе?", reply_markup=markup)
+    bot.send_photo(user_id, img_io, caption="мем нашёлся! как тебе?", reply_markup=markup)
     data['shown_indices'].add(best_idx)
 
 
@@ -160,7 +160,7 @@ def start_new_search(user_id, query_text):
         search_tokens = custom_stem_tokenizer([query_text])[0]
         user_data[user_id]['search_tokens'] = search_tokens
     except:
-        bot.send_message(user_id, "ошибка обработки запроса. попробуй ещё раз.")
+        bot.send_message(user_id, "упс! произошла ошибка. попробуй ещё раз (￣▽￣*)ゞ")
         return
 
     if 'stan' not in df.columns:
@@ -182,7 +182,7 @@ def start(message):
     markup = get_main_menu()
     bot.send_message(
         user_id,
-        "привет! я помогу найти мем по твоим словам.",
+        "привет!\n(ﾉ◕ヮ◕)ﾉ*:･ﾟ✧\n\nя чат-бот для поиска мемов memoRU.\nбуду рад помочь найти нужный мем!\n\nвспомни, что было изображено или написано на картинке и напиши сюда (*´︶`*)",
         reply_markup=markup
     )
 
@@ -202,7 +202,7 @@ def handle_start_button(call):
     except:
         pass
 
-    bot.send_message(user_id, "супер! введи слова для поиска мема.")
+    bot.send_message(user_id, "введи слова для поиска:")
 
 
 @bot.callback_query_handler(func=lambda call: call.data in ["ok", "not_ok"])
@@ -210,7 +210,7 @@ def handle_button(call):
     """
     Обрабатывает нажатие кнопок "ок" / "не ок".
 
-    Параметры:все,
+    Параметры:
         call: Нажатие на кнопку
     """
     user_id = call.message.chat.id
@@ -221,10 +221,10 @@ def handle_button(call):
     data = user_data[user_id]
 
     if call.data == "ok":
-        bot.send_message(user_id, "ураааа нашли 🎉")
+        bot.send_message(user_id, "супер! ٩(◕‿◕)۶")
         user_data.pop(user_id, None)
         markup = get_main_menu()
-        bot.send_message(user_id, "хочешь найти ещё один мем?", reply_markup=markup)
+        bot.send_message(user_id, "поищем ещё?", reply_markup=markup)
 
     elif call.data == "not_ok":
         data['attempts'] += 1
@@ -232,7 +232,8 @@ def handle_button(call):
         send_next_meme(user_id)
 
 
-@bot.message_handler(func=lambda message: True)
+@bot.message_handler(func=lambda message: True, content_types=[
+    'text', 'voice', 'audio', 'video', 'photo', 'document', 'poll', 'sticker', 'video_note', 'location', 'contact'])
 def process_first_query(message):
     """
     Обрабатывает введённый пользователем текст.
@@ -242,14 +243,43 @@ def process_first_query(message):
     """
     user_id = message.chat.id
 
+    if user_id not in user_data:
+        user_data[user_id] = {
+            'attempts': 0,
+            'shown_indices': set(),
+            'finished': True,
+            'awaiting_new_query': False
+        }
+
+    user_info = user_data[user_id]
+
+    if user_info.get('awaiting_new_query', False):
+        user_info['attempts'] = 1
+        user_info['shown_indices'] = set()
+        user_info['finished'] = False
+        user_info['awaiting_new_query'] = False
+
+        try:
+            search_tokens = custom_stem_tokenizer([message.text])[0]
+            user_info['search_tokens'] = search_tokens
+        except Exception as e:
+            bot.send_message(user_id, "упс! произошла ошибка. попробуй ещё раз (￣▽￣*)ゞ")
+            return
+
+        if 'stan' not in df.columns:
+            df['stan'] = custom_stem_tokenizer(df['text'].fillna("").tolist())
+
+        send_next_meme(user_id)
+        return
+
     if message.content_type != 'text':
         bot.send_message(
             user_id,
-            "плиз, вводи только текст для поиска мема. мы еще не слишком хороши, чтобы обрабатывать другого типа запросы."
+            "объясни, пожалуйста, словами ( ͡° ͜ʖ ͡°)"
         )
 
         markup = get_main_menu()
-        bot.send_message(user_id, "ну че, приступим?", reply_markup=markup)
+        bot.send_message(user_id, "приступим? (　･ω･)☞", reply_markup=markup)
         return
 
     if message.text.startswith('/'):
@@ -258,12 +288,12 @@ def process_first_query(message):
     if has_active_search(user_id):
         markup = InlineKeyboardMarkup()
         markup.add(
-            InlineKeyboardButton("начинаем по новой", callback_data="new_search"),
-            InlineKeyboardButton("извините, продолжаем искать", callback_data="continue_search")
+            InlineKeyboardButton("начать заново", callback_data="new_search"),
+            InlineKeyboardButton("продолжить поиск", callback_data="continue_search")
         )
         bot.send_message(
             user_id,
-            "у тебя уже идёт поиск! что хочешь сделать?",
+            "поиск уже идёт!",
             reply_markup=markup
         )
         return
@@ -291,7 +321,7 @@ def handle_search_choice(call):
         user_data[user_id]['awaiting_new_query'] = True
 
     elif call.data == "continue_search":
-        bot.send_message(user_id, "продолжаем старый поиск!")
+        bot.send_message(user_id, "продолжаю искать... 	(ง ื▿ ื)ว")
         send_next_meme(user_id)
 
 
